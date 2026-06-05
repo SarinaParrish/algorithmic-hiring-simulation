@@ -72,6 +72,10 @@ These results show that even a simple trait-weighted screening rule can meaningf
 
 ---
 
+## Example Visualization
+
+![Trait Comparison Radar Chart](docs/images/output%20(1).png)
+
 ## Repository Structure
 
 ```text
