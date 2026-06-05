@@ -201,7 +201,7 @@ pip install -r requirements.txt
 Run tests:
 
 ```bash
-pytest
+.venv/bin/python3 -m pytest
 ```
 
 Run the main simulation:
