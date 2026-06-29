@@ -150,6 +150,27 @@ This runs a 10-round comparison between:
 
 The script prints summary results to the terminal and saves CSV output files.
 
+## Phase 2 Experiments
+
+The Phase 2 experiment runner is:
+
+```bash
+python3 experiments/run_phase2_experiments.py
+```
+
+This runs three comparable scenarios with the same seeded simulation settings:
+
+1. Baseline balanced trait weighting
+2. Personality-weighted hiring
+3. Culture-fit feedback loop
+
+The shared runner writes CSV logs to `outputs/logs/`. To regenerate the radar
+chart comparison, run:
+
+```bash
+python3 experiments/generate_trait_comparison_chart.py
+```
+
 ---
 
 ## Example Output Files

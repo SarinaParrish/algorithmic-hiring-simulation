@@ -3,67 +3,60 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
+import os
+
+MATPLOTLIB_CACHE_DIR = Path(".matplotlib_cache")
+MATPLOTLIB_CACHE_DIR.mkdir(exist_ok=True)
+os.environ.setdefault("MPLCONFIGDIR", str(MATPLOTLIB_CACHE_DIR))
+
+import numpy as np
 import pandas as pd
+import matplotlib
+
+matplotlib.use("Agg")
+
 import matplotlib.pyplot as plt
+
+from src.experiment_config import PHASE_2_SCENARIOS, TRAIT_COLUMNS
 
 
 def main():
-    neutral_df = pd.read_csv(
-        "outputs/logs/neutral_scoring_results.csv"
-    )
+    output_dir = Path("outputs/figures")
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-    weighted_df = pd.read_csv(
-        "outputs/logs/personality_weighted_results.csv"
-    )
+    labels = TRAIT_COLUMNS
+    angles = np.linspace(0, 2 * np.pi, len(labels), endpoint=False).tolist()
+    angles += angles[:1]
 
-    traits = [
-        "openness",
-        "conscientiousness",
-        "extraversion",
-        "agreeableness",
-        "neuroticism",
-    ]
+    fig, ax = plt.subplots(figsize=(8, 8), subplot_kw={"polar": True})
 
-    neutral_means = neutral_df[traits].mean()
-    weighted_means = weighted_df[traits].mean()
+    for scenario in PHASE_2_SCENARIOS:
+        path = Path("outputs/logs") / scenario.output_filename
 
-    plt.figure(figsize=(10, 6))
+        if not path.exists():
+            raise FileNotFoundError(
+                f"Missing {path}. Run experiments/run_phase2_experiments.py first."
+            )
 
-    x = range(len(traits))
+        df = pd.read_csv(path)
+        values = df[TRAIT_COLUMNS].mean().tolist()
+        values += values[:1]
 
-    plt.plot(
-        x,
-        neutral_means,
-        marker="o",
-        label="Neutral Scoring",
-    )
+        ax.plot(angles, values, marker="o", linewidth=2, label=scenario.label)
+        ax.fill(angles, values, alpha=0.08)
 
-    plt.plot(
-        x,
-        weighted_means,
-        marker="o",
-        label="Personality Weighted",
-    )
+    ax.set_xticks(angles[:-1])
+    ax.set_xticklabels(labels)
+    ax.set_ylim(0, 1)
+    ax.set_title("Selected Candidate Trait Comparison", pad=20)
+    ax.legend(loc="upper right", bbox_to_anchor=(1.35, 1.10))
 
-    plt.xticks(x, traits)
-    plt.ylabel("Average Selected Trait Score")
-    plt.xlabel("Big Five Traits")
+    fig.tight_layout()
 
-    plt.title(
-        "Selected Candidate Trait Comparison"
-    )
+    output_path = output_dir / "selected_trait_comparison.png"
+    fig.savefig(output_path, dpi=150)
 
-    plt.legend()
-
-    plt.tight_layout()
-
-    plt.savefig(
-        "outputs/figures/selected_trait_comparison.png"
-    )
-
-    print(
-        "Saved chart: outputs/figures/selected_trait_comparison.png"
-    )
+    print(f"Saved chart: {output_path}")
 
 
 if __name__ == "__main__":
