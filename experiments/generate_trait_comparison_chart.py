@@ -3,60 +3,55 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-import os
+from src.experiment_config import PHASE_2_SCENARIOS
+from src.radar_chart_demo import save_radar_chart_from_csvs
 
-MATPLOTLIB_CACHE_DIR = Path(".matplotlib_cache")
-MATPLOTLIB_CACHE_DIR.mkdir(exist_ok=True)
-os.environ.setdefault("MPLCONFIGDIR", str(MATPLOTLIB_CACHE_DIR))
 
-import numpy as np
-import pandas as pd
-import matplotlib
+CHART_TITLES = {
+    "baseline": "Baseline: Selected Workforce Trait Profile",
+    "personality_weighted": "Personality-Weighted Hiring: Selected Workforce Trait Profile",
+    "culture_fit_feedback": "Culture-Fit Feedback Loop: Selected Workforce Trait Profile",
+}
 
-matplotlib.use("Agg")
 
-import matplotlib.pyplot as plt
+def radar_chart_filename(scenario_key: str) -> str:
+    return f"{scenario_key}_radar_chart.png"
 
-from src.experiment_config import PHASE_2_SCENARIOS, TRAIT_COLUMNS
+
+def applicant_pool_filename(scenario_key: str) -> str:
+    return f"{scenario_key}_applicant_pool.csv"
 
 
 def main():
     output_dir = Path("outputs/figures")
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    labels = TRAIT_COLUMNS
-    angles = np.linspace(0, 2 * np.pi, len(labels), endpoint=False).tolist()
-    angles += angles[:1]
-
-    fig, ax = plt.subplots(figsize=(8, 8), subplot_kw={"polar": True})
+    log_dir = Path("outputs/logs")
 
     for scenario in PHASE_2_SCENARIOS:
-        path = Path("outputs/logs") / scenario.output_filename
+        applicant_pool_csv_path = log_dir / applicant_pool_filename(scenario.key)
+        hired_workforce_csv_path = log_dir / scenario.output_filename
 
-        if not path.exists():
+        if not applicant_pool_csv_path.exists():
             raise FileNotFoundError(
-                f"Missing {path}. Run experiments/run_phase2_experiments.py first."
+                f"Missing {applicant_pool_csv_path}. "
+                "Run experiments/run_phase2_experiments.py first."
             )
 
-        df = pd.read_csv(path)
-        values = df[TRAIT_COLUMNS].mean().tolist()
-        values += values[:1]
+        if not hired_workforce_csv_path.exists():
+            raise FileNotFoundError(
+                f"Missing {hired_workforce_csv_path}. "
+                "Run experiments/run_phase2_experiments.py first."
+            )
 
-        ax.plot(angles, values, marker="o", linewidth=2, label=scenario.label)
-        ax.fill(angles, values, alpha=0.08)
+        output_path = output_dir / radar_chart_filename(scenario.key)
+        save_radar_chart_from_csvs(
+            applicant_pool_csv_path=applicant_pool_csv_path,
+            hired_workforce_csv_path=hired_workforce_csv_path,
+            title=CHART_TITLES[scenario.key],
+            output_path=output_path,
+            hired_label=f"{scenario.label} Hired Workforce",
+        )
 
-    ax.set_xticks(angles[:-1])
-    ax.set_xticklabels(labels)
-    ax.set_ylim(0, 1)
-    ax.set_title("Selected Candidate Trait Comparison", pad=20)
-    ax.legend(loc="upper right", bbox_to_anchor=(1.35, 1.10))
-
-    fig.tight_layout()
-
-    output_path = output_dir / "selected_trait_comparison.png"
-    fig.savefig(output_path, dpi=150)
-
-    print(f"Saved chart: {output_path}")
+        print(f"Saved chart: {output_path}")
 
 
 if __name__ == "__main__":

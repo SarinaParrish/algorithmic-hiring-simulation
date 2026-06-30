@@ -6,6 +6,7 @@ from src.experiment_config import (
 )
 from src.scoring import culture_fit_score, score_for_scenario
 from src.simulation.simulation_runner import run_scenario_simulation
+from src.simulation.simulation_runner import run_scenario_simulation_with_applicant_pool
 
 
 def _candidate(**overrides):
@@ -61,3 +62,18 @@ def test_culture_fit_simulation_adds_scenario_column():
 
     assert len(results) == 6
     assert set(results["scenario"]) == {CULTURE_FIT_SCENARIO.key}
+
+
+def test_scenario_simulation_can_return_applicant_pool():
+    selected, applicants = run_scenario_simulation_with_applicant_pool(
+        scenario=BASELINE_SCENARIO,
+        n_rounds=2,
+        candidates_per_round=10,
+        selected_per_round=3,
+        seed=42,
+    )
+
+    assert len(selected) == 6
+    assert len(applicants) == 20
+    assert set(selected["scenario"]) == {BASELINE_SCENARIO.key}
+    assert set(applicants["scenario"]) == {BASELINE_SCENARIO.key}
