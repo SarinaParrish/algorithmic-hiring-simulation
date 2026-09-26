@@ -3,67 +3,55 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-import pandas as pd
-import matplotlib.pyplot as plt
+from src.experiment_config import PHASE_2_SCENARIOS
+from src.radar_chart_demo import save_radar_chart_from_csvs
+
+
+CHART_TITLES = {
+    "baseline": "Baseline: Selected Workforce Trait Profile",
+    "personality_weighted": "Personality-Weighted Hiring: Selected Workforce Trait Profile",
+    "culture_fit_feedback": "Culture-Fit Feedback Loop: Selected Workforce Trait Profile",
+}
+
+
+def radar_chart_filename(scenario_key: str) -> str:
+    return f"{scenario_key}_radar_chart.png"
+
+
+def applicant_pool_filename(scenario_key: str) -> str:
+    return f"{scenario_key}_applicant_pool.csv"
 
 
 def main():
-    neutral_df = pd.read_csv(
-        "outputs/logs/neutral_scoring_results.csv"
-    )
+    output_dir = Path("outputs/figures")
+    log_dir = Path("outputs/logs")
 
-    weighted_df = pd.read_csv(
-        "outputs/logs/personality_weighted_results.csv"
-    )
+    for scenario in PHASE_2_SCENARIOS:
+        applicant_pool_csv_path = log_dir / applicant_pool_filename(scenario.key)
+        hired_workforce_csv_path = log_dir / scenario.output_filename
 
-    traits = [
-        "openness",
-        "conscientiousness",
-        "extraversion",
-        "agreeableness",
-        "neuroticism",
-    ]
+        if not applicant_pool_csv_path.exists():
+            raise FileNotFoundError(
+                f"Missing {applicant_pool_csv_path}. "
+                "Run experiments/run_phase2_experiments.py first."
+            )
 
-    neutral_means = neutral_df[traits].mean()
-    weighted_means = weighted_df[traits].mean()
+        if not hired_workforce_csv_path.exists():
+            raise FileNotFoundError(
+                f"Missing {hired_workforce_csv_path}. "
+                "Run experiments/run_phase2_experiments.py first."
+            )
 
-    plt.figure(figsize=(10, 6))
+        output_path = output_dir / radar_chart_filename(scenario.key)
+        save_radar_chart_from_csvs(
+            applicant_pool_csv_path=applicant_pool_csv_path,
+            hired_workforce_csv_path=hired_workforce_csv_path,
+            title=CHART_TITLES[scenario.key],
+            output_path=output_path,
+            hired_label=f"{scenario.label} Hired Workforce",
+        )
 
-    x = range(len(traits))
-
-    plt.plot(
-        x,
-        neutral_means,
-        marker="o",
-        label="Neutral Scoring",
-    )
-
-    plt.plot(
-        x,
-        weighted_means,
-        marker="o",
-        label="Personality Weighted",
-    )
-
-    plt.xticks(x, traits)
-    plt.ylabel("Average Selected Trait Score")
-    plt.xlabel("Big Five Traits")
-
-    plt.title(
-        "Selected Candidate Trait Comparison"
-    )
-
-    plt.legend()
-
-    plt.tight_layout()
-
-    plt.savefig(
-        "outputs/figures/selected_trait_comparison.png"
-    )
-
-    print(
-        "Saved chart: outputs/figures/selected_trait_comparison.png"
-    )
+        print(f"Saved chart: {output_path}")
 
 
 if __name__ == "__main__":
