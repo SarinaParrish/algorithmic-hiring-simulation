@@ -268,15 +268,17 @@ Current limitations include:
 
 ---
 
-## Phase 2 Roadmap
+## Phase 2 Completed
 
-Planned Phase 2 improvements may include:
+Phase 2 extends the MVP with:
 
-* Feedback loops where selected workers influence future culture-fit criteria
-* Intervention testing, such as blind screening or trait re-weighting
-* Additional scoring scenarios
-* Sensitivity analysis across scoring parameters
-* Stronger written analysis connecting simulation findings to real-world hiring algorithm debates
+* A culture-fit feedback loop where the selected workforce influences future candidate scoring
+* Three comparable experiment scenarios: baseline, personality-weighted, and culture-fit feedback
+* Applicant-pool and selected-workforce logging
+* Scenario-specific radar chart visualizations
+* Automated tests for Phase 2 scoring and simulation behavior
+
+Possible future extensions include intervention testing such as blind screening or trait re-weighting, additional scoring scenarios, sensitivity analysis across scoring parameters, and further comparison with published hiring audit research.
 
 The priority for Phase 2 is to improve analytical depth while keeping the project explainable and reproducible.
 
